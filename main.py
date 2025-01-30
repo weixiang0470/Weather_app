@@ -224,7 +224,7 @@ class WeatherScreen(Screen):
                 cnt=0
                 for l in t:
                     cnt+=1
-                    if cnt<=(start-today).days or cnt>14:continue
+                    if cnt<=(start-today).days or cnt>14 or cnt>(end-today).days+1:continue
                     future_weather+=l+"\n"
                 if c==1:
                     new_starttime = today + timedelta(days=14)
@@ -252,9 +252,11 @@ class WeatherScreen(Screen):
             conn.close()
 
             self.search_waether_output.text = future_weather
+            self.clear_input()
         except Exception as e:
             print(f'Error in search weather: {e}')
             self.search_waether_output.text = str(e)
+            self.clear_input()
 
     def read_records(self, instance):
 
@@ -264,6 +266,7 @@ class WeatherScreen(Screen):
             cursor.execute("SELECT * FROM weather_requests")
             rows = cursor.fetchall()
             conn.close()
+            self.clear_input()
 
             if rows:
                 result = "All records:\n"
@@ -275,6 +278,7 @@ class WeatherScreen(Screen):
                 self.search_waether_output.text = "Empty record!"
         except Exception as e:
             self.search_waether_output.text = str(e)
+            self.clear_input()
 
     def output_file(self,instance):
         try:
@@ -336,9 +340,10 @@ class WeatherScreen(Screen):
             conn.close()
 
             self.search_waether_output.text = f"Record ID {record_id} updated!"
-        
+            self.clear_input()
         except Exception as e:
             self.search_waether_output.text = str(e)
+            self.clear_input()
             print(e)
 
     def delete_record(self, instance):
@@ -364,10 +369,17 @@ class WeatherScreen(Screen):
             conn.close()
 
             self.search_waether_output.text = f"Record ID {record_id} deleted!"
+            self.clear_input()
         except Exception as e:
             self.search_waether_output.text = str(e)
+            self.clear_input()
             print(e)
 
+    def clear_input(self):
+        self.location_input.text = ""
+        self.start_date_input.text = ""
+        self.end_date_input.text = ""
+        self.id_input.text = ""
     def show_current(self):
         current_city = city()
         if(CE.contains_chinese(current_city)):current_city=CE.translate_to_english(current_city)
