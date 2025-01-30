@@ -26,7 +26,7 @@ import Chi2Eng as CE
 import Weather
 
 kivy.require('2.1.0')
-# 初始化資料庫
+# Initial database
 def init_db():
     conn = sqlite3.connect("weather.db")
     cursor = conn.cursor()
@@ -41,11 +41,13 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Get current city
 def city():
     city = currentcity.get_city()
     print(f'{city=}')
     return city
 
+## Scrollable label building
 Builder.load_string('''
 <ScrollableLabel>:
     Label:
@@ -58,14 +60,15 @@ Builder.load_string('''
 class ScrollableLabel(ScrollView):
     text = StringProperty('')
 
+# Weather screen
 class WeatherScreen(Screen):
     def __init__(self, **kwargs):
         super(WeatherScreen, self).__init__(**kwargs)
 
-        # 主佈局
+        # Input layout
         input_layout = BoxLayout(orientation='vertical', padding=5, spacing=5)
 
-        # 輸入框
+        # Input text
         self.location_input = TextInput(hint_text='Enter city (ex: Taipei, London)', multiline=False, size_hint=(1, 0.1))
         self.start_date_input = TextInput(hint_text='Start data (YYYY-MM-DD, ex:2025-01-20)', multiline=False, size_hint=(1, 0.1))
         self.end_date_input = TextInput(hint_text='End date (YYYY-MM-DD, ex:2025-01-25)', multiline=False, size_hint=(1, 0.1))
@@ -76,84 +79,79 @@ class WeatherScreen(Screen):
         input_layout.add_widget(self.end_date_input)
         input_layout.add_widget(self.id_input)
 
-        # 操作按鈕
+        # Button layout
         button_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
+        # Search button
         search_button = Button(text='Search', size_hint=(1, 0.1))
         search_button.bind(on_press=self.search_weather)
         button_layout.add_widget(search_button)
 
-        # save_button = Button(text='Add to History', size_hint=(1, 0.1))
-
+        # Read database button
         read_button = Button(text='History', size_hint=(1, 0.1))
         read_button.bind(on_press=self.read_records)
         button_layout.add_widget(read_button)
 
+        # Update button
         update_button = Button(text='Update (ID)', size_hint=(1, 0.1))
         update_button.bind(on_press=self.update_record)
         button_layout.add_widget(update_button)
 
+        # Delete button
         delete_button = Button(text='Delete (ID)', size_hint=(1, 0.1))
         delete_button.bind(on_press=self.delete_record)
         button_layout.add_widget(delete_button)
 
+        # Input text and button layout
         input_both_layout = BoxLayout(orientation='horizontal', padding=10, spacing=10)
         input_both_layout.add_widget(input_layout)
         input_both_layout.add_widget(button_layout)
 
-        # 結果顯示
+        # Output layout
         output_layout = BoxLayout(orientation='horizontal', spacing=10, padding=10)
-        # font_name="NotoSansCJK-Regular.ttf"
-        # output_layout_left1 = BoxLayout(orientation='vertical', spacing=10, padding=5)
         self.current_waether_output = Label(text='Current Weather:', size_hint=(1, 0.5),pos_hint={'center_x': 0.5, 'center_y': 0.5})
-        
-
-        # 天氣圖標
+        # Weather icon
         self.weather_icon = AsyncImage(size_hint=(1, 0.1),pos_hint={'center_x': 0.5, 'center_y': 0.5},allow_stretch= True)
-        # output_layout_left1.add_widget(self.weather_icon)
-        # output_layout_left1.add_widget(self.current_waether_output)
 
+        # Current weather information layout
         output_layout_left2 = BoxLayout(orientation='vertical', spacing=10, padding=10)
         self.forecast_waether_output = ScrollableLabel(text='Forecast Weather:', size_hint=(1, 0.5))
         output_layout_left2.add_widget(self.weather_icon)
         output_layout_left2.add_widget(self.forecast_waether_output)
 
-
+        # Search area output scrollable label
         self.search_waether_output = ScrollableLabel(text='Search Weather:', size_hint=(1, 1))
 
+        # Output history file button
         output_file_b = Button(text='Output history')
         output_file_b.bind(on_press=self.output_file)
 
+        # About button
         about_us_b = Button(text="About")
         about_us_b.bind(on_press = self.about_us)
 
+        # Output area layout
         output_layout.add_widget(output_layout_left2)
         output_layout.add_widget(self.search_waether_output)
         output_layout.add_widget(output_file_b)
         output_layout.add_widget(about_us_b)
 
+        # Weather Screen layout
         main_layout = BoxLayout(orientation='vertical', spacing=10)
         main_layout.add_widget(input_both_layout)
         main_layout.add_widget(output_layout)
         self.add_widget(main_layout)
         self.show_current()
         self.update_joke()
-        # 設定定時器，每30秒更新一次
+        # Set refresh joke every 30 seconds
         schedule.every(0.5).minutes.do(self.schedule_joke_update)
-        # 在背景執行定時器
+        # schedule in background
         threading.Thread(target=self.run_schedule, daemon=True).start()
 
-        #return main_layout
-
+    # Check date range is valid and the date range is in which condition
     def validate_date_range(self, start, end,today):
         try:
-            # start = datetime.strptime(start_date, "%Y-%m-%d")
-            
-            # end = datetime.strptime(end_date, "%Y-%m-%d")
             r = end-start
-            # print(f'{start=}, {end=}, {end-start}, {range.days=}')
-            # if range.days>14: what_condition="future"
-            # else: what_condition="forecast"
             if(r.days>=0): 
                 if (start - today).days <=14 and (end-today).days <=14:
                     return r.days + 1,0
@@ -194,6 +192,7 @@ class WeatherScreen(Screen):
         except Exception:
             return None
 
+    # Search weather information
     def search_weather(self,instance):
         location = self.location_input.text.strip()
         start_date = self.start_date_input.text.strip()
@@ -212,8 +211,6 @@ class WeatherScreen(Screen):
             if r==-1:
                 self.search_waether_output.text = "Start date should between 14 days and 300 days from today"
                 return
-            # delta = end - start
-            # print(f'{delta=}, {delta.days=}, type:{type(delta.days)}')
             if r > 7:
                 self.search_waether_output.text = "Please don't over 10 days"
                 return
@@ -236,10 +233,8 @@ class WeatherScreen(Screen):
             elif c==2:
                 for i in range(r):
                     day = start + timedelta(days=i)
-                    # print(day)
                     forecast = Weather.fetch_future_weather(location,day)
                     future_weather+=forecast
-            # print(f'{forecast=}')
             if not forecast:
                 self.search_waether_output.text = "Invalid location(city) or weather information not found!"
                 return
@@ -258,6 +253,7 @@ class WeatherScreen(Screen):
             self.search_waether_output.text = str(e)
             self.clear_input()
 
+    # Read from database and show it
     def read_records(self, instance):
 
         try:
@@ -280,6 +276,7 @@ class WeatherScreen(Screen):
             self.search_waether_output.text = str(e)
             self.clear_input()
 
+    # Output history.json file from database
     def output_file(self,instance):
         try:
             conn = sqlite3.connect("weather.db")
@@ -299,11 +296,10 @@ class WeatherScreen(Screen):
         except Exception as e:
             self.search_waether_output.text = str(e)
 
+    # Update records in database
     def update_record(self, instance):
         record_id = self.id_input.text.strip()
         records = self.location_input.text.strip()
-        # start_date = self.start_date_input.text.strip()
-        # end_date = self.end_date_input.text.strip()
 
         if not record_id.isdigit():
             self.search_waether_output.text = "Please enter valid ID!"
@@ -312,21 +308,14 @@ class WeatherScreen(Screen):
         if not records:
             self.search_waether_output.text = "Data can not be empty!"
             return
-        # if not self.validate_date_range(start_date, end_date):
-        #     self.search_waether_output.text = "Date range invalid! Please enter correct date."
-        #     return
         
-        # forecast = self.fetch_weather(location, start_date, end_date)
-        # if not forecast:
-        #     self.search_waether_output.text = "Invalid location(city) or weather information not found!"
-        #     return
         try : 
             conn = sqlite3.connect("weather.db")
             cursor = conn.cursor()
             cursor.execute("Select id From weather_requests")
             all_id_tuple = cursor.fetchall()
             all_id = [item[0] for item in all_id_tuple]
-            # print(record_id,type(record_id))
+
             if int(record_id) not in all_id:
                 self.search_waether_output.text = "ID not found!"
                 conn.close()
@@ -346,10 +335,10 @@ class WeatherScreen(Screen):
             self.clear_input()
             print(e)
 
+    # Delete records in databse
     def delete_record(self, instance):
         record_id = self.id_input.text.strip()
 
-        # print(f'id input = {record_id}')
         if not record_id.isdigit():
             self.search_waether_output.text = "Please enter valid ID!"
             return
@@ -375,45 +364,48 @@ class WeatherScreen(Screen):
             self.clear_input()
             print(e)
 
+    # Clear input text
     def clear_input(self):
         self.location_input.text = ""
         self.start_date_input.text = ""
         self.end_date_input.text = ""
         self.id_input.text = ""
+    
+    # Show current weather information
     def show_current(self):
         current_city = city()
         if(CE.contains_chinese(current_city)):current_city=CE.translate_to_english(current_city)
-        # url_forecast = f"http://api.weatherapi.com/v1/forecast.json?key={API_KEY}&q={current_city}&days=5"
         icon,current_weather,forecast_weather = Weather.fetch_forecast_weather(current_city)
 
-        # self.current_waether_output.text=current_weather
         self.forecast_waether_output.text = forecast_weather
         self.weather_icon.source = icon
         self.current_waether_output.text = forecast_weather
     
+    # Get a joke
     def get_joke(self):
-        """取得隨機笑話"""
         return pyjokes.get_joke(language="en", category="all")
 
+    # Update joke on screen
     def update_joke(self, dt=None):
-        """更新 UI 上的笑話"""
         new_joke = self.get_joke()
         weather_info = self.current_waether_output.text
         self.forecast_waether_output.text = weather_info+new_joke
 
+    # Schedule update joke
     def schedule_joke_update(self):
-        """讓 UI 在主執行緒上更新笑話"""
         Clock.schedule_once(self.update_joke)
 
+    # Set schedule
     def run_schedule(self):
-        """定時執行 `schedule.run_pending()`"""
         while True:
             schedule.run_pending()
             time.sleep(1)
 
+    # Change to About screen
     def about_us(self,instance):
         self.manager.current = "about_screen"
 
+# About screen
 class AboutScreen(Screen):
     def __init__(self, **kwargs):
         super(AboutScreen, self).__init__(**kwargs)
@@ -422,14 +414,20 @@ class AboutScreen(Screen):
         pm_description = self.read_text_file("description.txt")
         pma_url = "https://www.linkedin.com/school/pmaccelerator/"
         wwx_url = "https://www.linkedin.com/in/wong-wei-xiang-709722345/"
+
+        # My linkedin
         intro = Label(text="[ref=google][color=0000FF][u]Wong Wei Xiang[/color][/u][/ref]",markup=True)
         intro.bind(on_ref_press=lambda instance, value: self.open_link(wwx_url))
+
+        # PM Accelerator linkedin
         pm_intro = Label(text="[ref=google][color=0000FF][u]Product Manager Accelerator[/color][/u][/ref]",markup=True)
         pm_intro.bind(on_ref_press=lambda instance, value: self.open_link(pma_url))
+
+        # Description
         self.PM_Accelerator = ScrollableLabel(text=pm_description, size_hint=(1, 1))
         back_button = Button(text="Back to Weather")
         back_button.bind(on_press = self.go_back_weather)
-        # print(f'{pm_description}')
+
         layout.add_widget(intro)
         layout.add_widget(pm_intro)
         layout.add_widget(self.PM_Accelerator)
@@ -437,14 +435,16 @@ class AboutScreen(Screen):
 
         self.add_widget(layout)
     
+    # Open link in browser
     def open_link(self,url):
         webbrowser.open(url)
     
+    # Go weather screen
     def go_back_weather(self,instance):
         self.manager.current = "weather_screen"
 
+    # Read description text file
     def read_text_file(self, filename):
-        """讀取指定的文字檔案，並回傳內容"""
         try:
             with open(filename, "r", encoding="utf-8") as file:
                 return file.read()
@@ -453,6 +453,7 @@ class AboutScreen(Screen):
         except Exception as e:
             return f"Error: {e}"
 
+# Weather app
 class WeatherApp(App):
     def build(self):
         init_db()
@@ -463,4 +464,3 @@ class WeatherApp(App):
         return sm
 if __name__ == '__main__':
     WeatherApp().run()
-    # WeatherApp.show_current()
