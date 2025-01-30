@@ -1,3 +1,4 @@
+import kivy
 import re
 import sqlite3
 import requests
@@ -6,6 +7,7 @@ import schedule
 import threading
 import json
 import time
+import webbrowser
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
@@ -15,6 +17,7 @@ from kivy.uix.image import AsyncImage
 from datetime import datetime,timedelta
 from kivy.uix.scrollview import ScrollView
 from kivy.properties import StringProperty
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.clock import Clock
 
@@ -22,6 +25,7 @@ import currentcity
 import Chi2Eng as CE
 import Weather
 
+kivy.require('2.1.0')
 # 初始化資料庫
 def init_db():
     conn = sqlite3.connect("weather.db")
@@ -39,6 +43,7 @@ def init_db():
 
 def city():
     city = currentcity.get_city()
+    print(f'{city=}')
     return city
 
 Builder.load_string('''
@@ -53,9 +58,9 @@ Builder.load_string('''
 class ScrollableLabel(ScrollView):
     text = StringProperty('')
 
-class WeatherApp(App):
-    def build(self):
-        init_db()
+class WeatherScreen(Screen):
+    def __init__(self, **kwargs):
+        super(WeatherScreen, self).__init__(**kwargs)
 
         # 主佈局
         input_layout = BoxLayout(orientation='vertical', padding=5, spacing=5)
@@ -119,14 +124,18 @@ class WeatherApp(App):
         output_file_b = Button(text='Output history')
         output_file_b.bind(on_press=self.output_file)
 
+        about_us_b = Button(text="About")
+        about_us_b.bind(on_press = self.about_us)
 
         output_layout.add_widget(output_layout_left2)
         output_layout.add_widget(self.search_waether_output)
         output_layout.add_widget(output_file_b)
+        output_layout.add_widget(about_us_b)
 
         main_layout = BoxLayout(orientation='vertical', spacing=10)
         main_layout.add_widget(input_both_layout)
         main_layout.add_widget(output_layout)
+        self.add_widget(main_layout)
         self.show_current()
         self.update_joke()
         # 設定定時器，每30秒更新一次
@@ -134,7 +143,7 @@ class WeatherApp(App):
         # 在背景執行定時器
         threading.Thread(target=self.run_schedule, daemon=True).start()
 
-        return main_layout
+        #return main_layout
 
     def validate_date_range(self, start, end,today):
         try:
@@ -281,6 +290,7 @@ class WeatherApp(App):
             with open("history.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
             print("output sucessfully")
+            self.search_waether_output.text = "Output file sucessfully"
 
         except Exception as e:
             self.search_waether_output.text = str(e)
@@ -389,8 +399,56 @@ class WeatherApp(App):
             schedule.run_pending()
             time.sleep(1)
 
+    def about_us(self,instance):
+        self.manager.current = "about_screen"
 
+class AboutScreen(Screen):
+    def __init__(self, **kwargs):
+        super(AboutScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
 
+        pm_description = self.read_text_file("description.txt")
+        pma_url = "https://www.linkedin.com/school/pmaccelerator/"
+        wwx_url = "https://www.linkedin.com/in/wong-wei-xiang-709722345/"
+        intro = Label(text="[ref=google][color=0000FF][u]Wong Wei Xiang[/color][/u][/ref]",markup=True)
+        intro.bind(on_ref_press=lambda instance, value: self.open_link(wwx_url))
+        pm_intro = Label(text="[ref=google][color=0000FF][u]Product Manager Accelerator[/color][/u][/ref]",markup=True)
+        pm_intro.bind(on_ref_press=lambda instance, value: self.open_link(pma_url))
+        self.PM_Accelerator = ScrollableLabel(text=pm_description, size_hint=(1, 1))
+        back_button = Button(text="Back to Weather")
+        back_button.bind(on_press = self.go_back_weather)
+        # print(f'{pm_description}')
+        layout.add_widget(intro)
+        layout.add_widget(pm_intro)
+        layout.add_widget(self.PM_Accelerator)
+        layout.add_widget(back_button)
+
+        self.add_widget(layout)
+    
+    def open_link(self,url):
+        webbrowser.open(url)
+    
+    def go_back_weather(self,instance):
+        self.manager.current = "weather_screen"
+
+    def read_text_file(self, filename):
+        """讀取指定的文字檔案，並回傳內容"""
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                return file.read()
+        except FileNotFoundError:
+            return "Description not found"
+        except Exception as e:
+            return f"Error: {e}"
+
+class WeatherApp(App):
+    def build(self):
+        init_db()
+        sm = ScreenManager()
+        sm.add_widget(WeatherScreen(name="weather_screen"))
+        sm.add_widget(AboutScreen(name="about_screen"))
+        sm.current = "weather_screen"
+        return sm
 if __name__ == '__main__':
     WeatherApp().run()
     # WeatherApp.show_current()
