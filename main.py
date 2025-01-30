@@ -69,7 +69,7 @@ class WeatherScreen(Screen):
         input_layout = BoxLayout(orientation='vertical', padding=5, spacing=5)
 
         # Input text
-        self.location_input = TextInput(hint_text='Enter city (ex: Taipei, London)', multiline=False, size_hint=(1, 0.1))
+        self.location_input = TextInput(hint_text='Enter city (ex: Taipei, London).\nData input for update function.', multiline=False, size_hint=(1, 0.1))
         self.start_date_input = TextInput(hint_text='Start data (YYYY-MM-DD, ex:2025-01-20)', multiline=False, size_hint=(1, 0.1))
         self.end_date_input = TextInput(hint_text='End date (YYYY-MM-DD, ex:2025-01-25)', multiline=False, size_hint=(1, 0.1))
         self.id_input = TextInput(hint_text='Enter record ID (For update or delete)', multiline=False, size_hint=(1, 0.1))

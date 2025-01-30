@@ -10,5 +10,11 @@
         "created_at": "2025-01-30 04:56:44",
         "location": "taipei",
         "records": "taipei\n- Taipei | Partly cloudy | 22.2°C -\n2025-01-31: Sunny, 11.8°C - 22.8°C\n2025-02-01: Sunny, 13.9°C - 25.0°C\n2025-02-02: Patchy rain nearby, 14.4°C - 18.0°C\n2025-02-03: Moderate rain, 11.1°C - 15.0°C\n2025-02-04: Sunny, 8.3°C - 14.1°C\n2025-02-05: Sunny, 7.6°C - 16.3°C\n"
+    },
+    {
+        "id": 4,
+        "created_at": "2025-01-30 06:35:47",
+        "location": "kempas",
+        "records": "kempas\n2025-02-10: Cloudy , 22.5°C - 29.9°C\n2025-02-11: Partly Cloudy , 23.2°C - 32.9°C\n2025-02-12: Partly Cloudy , 23.5°C - 33.0°C\n2025-02-13: Moderate or heavy rain shower, 24.3°C - 29.8°C\n2025-02-14: Moderate or heavy rain shower, 24.1°C - 29.7°C\n2025-02-15: Moderate or heavy rain shower, 24.1°C - 29.8°C\n"
     }
 ]
