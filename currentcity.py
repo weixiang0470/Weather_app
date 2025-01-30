@@ -1,14 +1,16 @@
 import geocoder
 from geopy.geocoders import Nominatim
 
+# Get current coordinates by ip address
 def get_current_gps_coordinates():
+
     g = geocoder.ip('me')#this function is used to find the current information using our IP Add
-    # print(f'{g=}')
-    if g.latlng is not None: #g.latlng tells if the coordiates are found or not
+    if g.latlng is not None: #g.latlng tells if the coordinates are found or not
         return g.latlng
     else:
         return None
 
+# Get city name by current ip address
 def get_city():
     coordinates = get_current_gps_coordinates()
     print(f'{coordinates=}')
@@ -16,13 +18,10 @@ def get_city():
     print(f'{geolocator=}')
     if coordinates is not None:
         latitude, longitude = coordinates
-        #print(f"Your current GPS coordinates are:")
-        # print(f"Latitude: {latitude}")
-        # print(f"Longitude: {longitude}")
         location = geolocator.reverse(str(latitude)+","+str(longitude))
-        print(f'{location=}')
+        # print(f'{location=}')
         address = location.raw['address']
-        print(f'{address}')
+        # print(f'{address}')
         city = address.get('city', '')
         if not city: city = address.get('state', '')
         if not city: city = address.get('country', '')

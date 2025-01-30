@@ -1,30 +1,27 @@
 import requests
 import os
 
-# WeatherAPI 的 API 金鑰 (請替換為你的 API 金鑰)
+# Get api key from .env
 API_KEY = os.getenv("API_KEY")
 
+# Get current weather information and forecast informatioin
 def fetch_forecast_weather(location,start=1,end=14,c=None):
-        
-
         # 呼叫 WeatherAPI
-        # url = f"http://api.weatherapi.com/v1/current.json?key={API_KEY}&q={location}"
         url = f"http://api.weatherapi.com/v1/forecast.json?key={API_KEY}&q={location}&days=14"
         try:
             response = requests.get(url)
             if response.status_code == 200:
                 data = response.json()
-                # 解析天氣資料
+                # Get weather information
                 location_name = data['location']['name']
                 temp_celsius = data['current']['temp_c']
                 weather_desc = data['current']['condition']['text']
                 icon_url = f"http:{data['current']['condition']['icon']}"
 
-                # 更新當前天氣顯示
                 icon = icon_url
                 current_weather = ( f"- {location_name} | {weather_desc} | {temp_celsius:.1f}°C -\n")
                 
-                # 預報天氣資料
+                # forecast information
                 forecast_data = data['forecast']['forecastday']
                 if c==None:forecast_text = current_weather+"13-day forecast:\n"
                 else:forecast_text=current_weather
@@ -39,7 +36,6 @@ def fetch_forecast_weather(location,start=1,end=14,c=None):
                     forecast_text += (f"{date}: {condition}, {min_temp:.1f}°C - {max_temp:.1f}°C\n")
                     if cnt>=end:break
 
-                # 更新預報顯示
                 forecast_weather = forecast_text
 
                 return icon,current_weather,forecast_weather
@@ -58,6 +54,7 @@ def fetch_forecast_weather(location,start=1,end=14,c=None):
             return icon,current_weather,forecast_weather
         
 
+# Get weather information using future api
 def fetch_future_weather(location,start_date):
      
     url = f"http://api.weatherapi.com/v1/future.json?key={API_KEY}&q={location}&dt={start_date}"
