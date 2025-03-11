@@ -22,7 +22,3 @@ API_KEY = "Your API key"
 
 ## Attention
 1. API key for free version is limited daily requests
-
-## My api key
-- For Product Manager Accelerator, this is my api key
-- `5769dd57560242baa4992406252601`
